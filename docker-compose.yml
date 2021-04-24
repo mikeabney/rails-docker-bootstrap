@@ -1,0 +1,28 @@
+version: '3'
+
+volumes:
+  app_bundle:
+
+services:
+  app_server:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - .:/usr/src/app
+      - app_bundle:/bundle
+    ports:
+      - "3000:3000"
+    environment:
+      BUNDLE_PATH: /bundle
+      BINDING: 0.0.0.0
+      PORT: 3000
+    depends_on:
+      - postgres
+  
+  postgres:
+    image: postgres:13-alpine
+    environment:
+      POSTGRES_USER: app_dev
+      POSTGRES_PASSWORD: dev_password
+  

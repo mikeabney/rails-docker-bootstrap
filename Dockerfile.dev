@@ -1,0 +1,30 @@
+from ruby:3.0-alpine as runtime
+
+LABEL app-name="project-web"
+
+#Install packages used for dev
+RUN apk add --no-cache \
+    bash \
+    build-base \
+    curl-dev \
+    git \
+    linux-headers \
+    nodejs \
+    yarn \
+    postgresql-client \
+    postgresql-dev \
+    tzdata \
+    tini
+
+ENV HOME /root
+ENV APP_HOME /usr/src/app
+WORKDIR $APP_HOME
+
+FROM runtime as application
+
+EXPOSE 3000
+
+# Run with tini to ensure zombies are cleaned and that signals are
+# forwarded correctly for `docker stop`, etc.
+ENTRYPOINT [ "tini", "--" ]
+CMD [ "bundle", "exec", "rails", "server", "-b", "0.0.0.0" ]

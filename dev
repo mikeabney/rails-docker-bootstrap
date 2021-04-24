@@ -1,0 +1,39 @@
+#!/bin/bash
+
+export COMPOSE_FILE=docker-compose.yml
+
+case "$1" in
+  bash)
+    docker-compose run --service-ports --rm app_server /bin/bash
+    ;;
+  build)
+    docker-compose build
+    ;;
+  down)
+    docker-compose down
+    ;;
+  new)
+    if [ -f ./Gemfile ]; then
+      echo "Gemfile exists! Will not create new rails app over old app."
+      exit 1
+    fi
+    cat > Gemfile << EOF
+source 'https://rubygems.org'
+gem 'rails'
+EOF
+    touch Gemfile.lock
+    docker-compose run --rm app_server bundle install
+    docker-compose run --rm app_server bundle exec rails new . --force --database=postgresql
+    ;;
+  setup)
+    docker-compose run --rm app_server \
+        /bin/bash -c "bin/setup"
+    ;;
+  test)
+    docker-compose run -e RAILS_ENV=test --rm app_server \
+        /bin/bash -c "bundle exec rspec"
+    ;;
+  up)
+    docker-compose run --service-ports --rm app_server
+    ;;
+esac
